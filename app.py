@@ -46,22 +46,21 @@ st.markdown("""
     """, unsafe_allow_html=True)
 
 # 헤더 섹션
-st.title("🦁 나의 내면 동물 찾기")
-st.markdown("당신의 생년월일과 MBTI를 통해 내면의 동물을 찾아보세요!")
+st.title("🦁 ChatGPT가 찾아주는 나의 내면 속 동물 🤖")
+st.markdown("당신의 사주(생년월일)과 MBTI를 통해 내면의 동물을 찾아보세요!")
 st.markdown("---")
 
 # 입력 섹션을 카드 형태로 구성
 with st.container():
     st.markdown("### 🌟 기본 정보 입력")
     
-    col1, col2, col3, col4 = st.columns([3, 1, 1, 1])
+    col1, col2 = st.columns([3, 1])
     
     with col1:
-        birth_date = st.date_input(
-            "생년월일을 선택하세요",
-            min_value=datetime(1900, 1, 1),
-            max_value=datetime.now(),
-            help="태어난 날짜를 선택해주세요"
+        birth_str = st.text_input(
+            "생년월일을 입력하세요 (예: 19970314)",
+            placeholder="YYYYMMDD 형식으로 입력해주세요",
+            help="생년월일 8자리를 입력해주세요 (예: 1997년 3월 14일 → 19970314)"
         )
     
     with col2:
@@ -70,20 +69,6 @@ with st.container():
             options=["양력", "음력"],
             help="생년월일의 양력/음력을 선택하세요"
         )
-    
-    with col3:
-        time_option = st.selectbox(
-            "시간 입력",
-            ["입력", "모름"],
-            help="출생 시간을 아는 경우 '입력'을 선택하세요"
-        )
-    
-    if time_option == "입력":
-        with col4:
-            birth_time = st.time_input(
-                "시간",
-                help="출생 시간을 입력하세요"
-            )
 
 # MBTI 섹션
 st.markdown("### 🎯 나의 성격 유형 선택")
@@ -118,8 +103,6 @@ st.markdown("---")
 if st.button("🔍 내면의 동물 찾기", help="입력한 정보를 바탕으로 당신의 내면 동물을 찾아드립니다"):
     with st.spinner('당신의 내면 동물을 찾고 있어요...'):
         # 사주 계산을 위한 데이터 준비
-        birth_str = birth_date.strftime("%Y%m%d")
-        birth_time_str = "모름" if time_option == "모름" else birth_time.strftime("%H%M")
         is_lunar = calendar_type == "음력"
         
         # 데이터 로드
@@ -127,7 +110,7 @@ if st.button("🔍 내면의 동물 찾기", help="입력한 정보를 바탕으
         mbti_df = pd.read_csv("data/mbti.csv")
         
         # 사주 정보 가져오기
-        saju_info = get_sexagenary_info(birth_str, birth_time_str, is_lunar=is_lunar)
+        saju_info = get_sexagenary_info(birth_str, "모름", is_lunar=is_lunar)
         
         # MBTI와 일주를 기반으로 성격 분석 정보 가져오기
         personality_info = get_personality_analysis(saju_info["일주"], mbti)
@@ -152,9 +135,9 @@ if st.button("🔍 내면의 동물 찾기", help="입력한 정보를 바탕으
     
     with col1:
         st.info("##### 📋 기본 정보")
+        birth_date = datetime.strptime(birth_str, "%Y%m%d")
         st.markdown(f"""
         - **생년월일**: {birth_date.strftime('%Y년 %m월 %d일')}
-        - **시간**: {'모름' if time_option == '모름' else birth_time.strftime('%H시 %M분')}
         - **{calendar_type}** 기준
         """)
     
